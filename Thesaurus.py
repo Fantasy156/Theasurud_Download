@@ -2,6 +2,11 @@ from requests import get
 from lxml import etree
 
 
+headers = {
+    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36'
+}
+
+
 def info(args):
     if type(args) is bool:
         return
@@ -16,6 +21,14 @@ def html(args):
     return etree.HTML(args)
 
 
+def code(url: str):
+    response = get(url, headers=headers)
+    if response.status_code == 200:
+        return response.text
+    else:
+        return False
+
+
 class sogou(object):
     def __init__(self):
         self.api = 'https://pinyin.sogou.com'
@@ -24,7 +37,10 @@ class sogou(object):
 
     def web(self, name: str, href: str):
         print(f'正在获取 {name} 分类')
-        res = html(get(f'{self.api}{href}').text)
+        text = code(f'{self.api}{href}')
+        if not text:
+            return None
+        res = html(text)
         node = res.xpath(
             '//div[@class="dict_category_list_title "]/a/text() | //div[@class="dict_category_list_title"]/a/text()')
         href = res.xpath(
@@ -37,11 +53,13 @@ class sogou(object):
 
     def sort(self, name, href):
         if href in self.list_href:
-            return
+            return None
         self.list_href.append(href)
         print(f'正在获取 {name} 分类')
-
-        res = html(get(f'{self.api}{href}').text)
+        text = code(f'{self.api}{href}')
+        if not text:
+            return None
+        res = html(text)
 
         try:
             node = info(res.xpath(
@@ -52,8 +70,8 @@ class sogou(object):
                 '//li//span//a/@href')[-1] or res.xpath(
                 '//a[@class="citylist"]/@href'))
         except IndexError:
-            node = False
-            href = False
+            node = None
+            href = None
 
         if node and href:
             for name, href in zip(node, href):
