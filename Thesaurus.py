@@ -1,9 +1,9 @@
 from requests import get
 from lxml import etree
 
-
 headers = {
-    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36'
+    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 '
+                  'Safari/537.36 '
 }
 
 
@@ -62,16 +62,18 @@ class sogou(object):
         res = html(text)
 
         try:
-            node = info(res.xpath(
-                '//li//span//a/text()')[-1] or res.xpath(
-                '//a[@class="citylist"]/text()'))
-
-            href = info(res.xpath(
-                '//li//span//a/@href')[-1] or res.xpath(
-                '//a[@class="citylist"]/@href'))
+            node = info(res.xpath( '//li//span//a/text()')[-1])
+            href = info(res.xpath('//li//span//a/@href')[-1])
         except IndexError:
             node = None
             href = None
+
+        if node and href:
+            for name, href in zip(node, href):
+                self.sort(name, href)
+
+        node = info(res.xpath('//a[@class="citylist"]/text()'))
+        href = info(res.xpath('//a[@class="citylist"]/@href'))
 
         if node and href:
             for name, href in zip(node, href):
@@ -89,10 +91,23 @@ class sogou(object):
     def main(self):
         name = '搜狗词库'
         href = '/dict/'
-        return self.web(name=name, href=href)
+        return f'sogou: {self.web(name=name, href=href)}'
 
 
 sogou = sogou().main
 
+
+class downloads(object):
+    def __dict(self, args):
+        print(type(args))
+
+    def __download(self):
+        pass
+
+    def main(self, args):
+        self.__dict(args)
+
+download = downloads().main
+
 if __name__ == "__main__":
-    print(sogou)
+    download(sogou)
